@@ -11,6 +11,7 @@ import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -29,6 +30,8 @@ class MainActivity : AppCompatActivity() {
     private val NOTIFICATION_ID = 0
     private val ACTION_UPDATE_NOTIFICATION =
         "com.example.android.notifyme.ACTION_UPDATE_NOTIFICATION"
+    private val ACTION_DELETE_NOTIFICATION =
+        "com.example.android.notifyme.ACTION_DELETE_NOTIFICATION"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -157,6 +160,17 @@ class MainActivity : AppCompatActivity() {
             NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val cancelIntent = Intent(this, MainActivity::class.java)
+//            Intent(ACTION_DELETE_NOTIFICATION)
+        cancelIntent.action = "notification_cancelled"
+        val cancelPendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            cancelIntent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+
+//        PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         return NotificationCompat.Builder(this, PRIMARY_CHANNEL_ID)
             .setContentTitle("You've been notified!")
             .setContentText("This is your notification text.")
@@ -166,6 +180,7 @@ class MainActivity : AppCompatActivity() {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setDeleteIntent(cancelPendingIntent)
     }
 
     fun setNotificationButtonState(
@@ -182,6 +197,16 @@ class MainActivity : AppCompatActivity() {
     inner class NotificationReceiver : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
+
+            val action = intent.action
+            Log.w("NotifyMe","intent action = $action")
+
+            if (action == "notification_cancelled") {
+                Log.w("NotifyMe","intent notification_cancelled is received")
+                // your code
+                cancelNotification()
+            }
+
             // Update the notification
             updateNotification()
         }
